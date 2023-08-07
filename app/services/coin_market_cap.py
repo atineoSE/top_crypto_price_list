@@ -9,6 +9,9 @@ COIN_MARKET_CAP_API_KEY = os.getenv("COIN_MARKET_CAP_API_KEY")
 
 
 class CoinMarketCap:
+    host: str
+    headers: dict[str, Any]
+
     def __init__(self):
         self.host = "https://pro-api.coinmarketcap.com/v1/"
         self.headers = {

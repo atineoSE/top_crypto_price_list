@@ -9,6 +9,9 @@ CRYPTO_COMPARE_API_KEY = os.getenv("CRYPTO_COMPARE_API_KEY")
 
 
 class CryptoCompare:
+    host: str
+    headers: dict[str, Any]
+
     def __init__(self):
         self.host = "https://min-api.cryptocompare.com/"
         self.headers = {

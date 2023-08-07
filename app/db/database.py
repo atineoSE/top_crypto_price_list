@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime, timedelta
 from models.models import CryptoEntry
+from pymongo.mongo_client import MongoClient
+from pymongo.collection import Collection
 
 load_dotenv()
 
@@ -10,19 +12,23 @@ db_password = os.getenv("DB_PASSWORD")
 
 
 class Database:
+    client: MongoClient
+    collection: Collection
+
     def __init__(self):
         CONNECTION_STRING = "mongodb+srv://admin:" + \
             db_password + "@cluster0.0maxtet.mongodb.net"
-        self.client = MongoClient(CONNECTION_STRING)["crypto"]
+        self.client = MongoClient(CONNECTION_STRING)
+        self.collection = self.client["crypto"]["top_assets"]
 
     def close(self):
         self.client.close()
 
     def insert_updated_data(self, crypto_entries: list[CryptoEntry]) -> None:
-        self.client.insert_many(crypto_entries)
+        self.collection.insert_many(crypto_entries)
 
     def get_historical_data(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
-        return self.client.find(
+        results = self.collection.find(
             {"and":
                 [
                     {"timestamp": {"$lt": timestamp}},
@@ -30,3 +36,5 @@ class Database:
                 ]
              },
         ).sort("timestamp").sort("rank", -1).limit(limit)
+
+        return list(map(lambda x: CryptoEntry(**x), results))
