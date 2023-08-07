@@ -7,8 +7,8 @@ router = APIRouter()
 time_format = '%Y-%m-%d %H:%M:%S'
 
 
-@router.get("/top_price_list", response_model=str | list[CryptoEntry])
-def get_user(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> str | list[CryptoEntry]:
+@router.get("/top_price_list", response_model=str)
+def get_user(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> str:
     # Validate limit
     if limit < 10 or limit > 100:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
