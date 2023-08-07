@@ -1,8 +1,5 @@
-from typing import Any
-from typing_extensions import Literal
-from pydantic import BaseModel, Field
-from pydantic.main import IncEx
-from PyObjectId import PyObjectId
+from pydantic import BaseModel
+from enum import Enum
 from datetime import datetime
 
 
@@ -11,3 +8,8 @@ class CryptoEntry(BaseModel):
     value: float
     rank: int
     timestamp: datetime
+
+
+class OutputFormat(Enum):
+    JSON = "JSON"
+    CSV = "CSV"
