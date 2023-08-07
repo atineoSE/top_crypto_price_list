@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
 from datetime import datetime, timedelta
-from models import CryptoEntry
+from models.models import CryptoEntry
 
 load_dotenv()
 
@@ -14,6 +14,9 @@ class Database:
         CONNECTION_STRING = "mongodb+srv://admin:" + \
             db_password + "@cluster0.0maxtet.mongodb.net"
         self.client = MongoClient(CONNECTION_STRING)["crypto"]
+
+    def close(self):
+        self.client.close()
 
     def insert_updated_data(self, crypto_entries: list[CryptoEntry]) -> None:
         self.client.insert_many(crypto_entries)
