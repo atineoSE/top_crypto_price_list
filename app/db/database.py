@@ -46,12 +46,6 @@ class Database:
             {"timestamp": timestamp}).sort("rank", -1).limit(limit)
         return list(map(lambda x: CryptoEntry(**x), results))
 
-    def get_last_update(self) -> datetime | None:
-        if (result := self.collection.find().sort("timestamp")).limit(1) is not None:
-            return result[0]["timestamp"]
-        else:
-            return None
-
     def _closest_timestamp(self, reference: datetime, timestamps: list[datetime]) -> datetime | None:
         if len(timestamps) == 0:
             return None
