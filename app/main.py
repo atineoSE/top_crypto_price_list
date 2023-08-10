@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api.routes import router
+from api.routes.routes import router
 from db.database import Database
 from services.coin_resolver import CoinResolver
 import uvicorn
