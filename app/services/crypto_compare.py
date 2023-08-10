@@ -22,12 +22,13 @@ class CryptoCompare:
     def get_top_crypto_list(self) -> list[str]:
         url = self.host + "data/top/totalvolfull"
         url_params: dict[str, Any] = {
-            "limit": 100
+            "limit": 100,
+            "tsym": "USD"
         }
         response = requests.get(url, headers=self.headers, params=url_params)
         data = response.json()["Data"]
-        top_crypto_list = map(
+        top_crypto = map(
             lambda x: (x["CoinInfo"]["Name"]),
             data
         )
-        return cast(list[str], top_crypto_list)
+        return list(top_crypto)

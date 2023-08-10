@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from enum import Enum
 from datetime import datetime
 
+time_format = '%Y-%m-%d %H:%M:%S'
+
 
 class CryptoEntry(BaseModel):
     name: str

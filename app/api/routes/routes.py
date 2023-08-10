@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Request, HTTPException, status
-from models.models import CryptoEntry, OutputFormat
+from models.models import CryptoEntry, OutputFormat, time_format
 from datetime import datetime as dt
 from models.errors import InvalidTime, UnavailableTime
+import sys
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s', stream=sys.stdout)
 
 router = APIRouter()
-
-time_format = '%Y-%m-%d %H:%M:%S'
 
 
 @router.get("/top_price_list", response_model=str)
@@ -16,7 +19,7 @@ def get_user(request: Request, limit: int, datetime: str | None = None, format: 
                             detail="Limit must be between 10 and 100")
 
     # Validate timestamp
-    timestamp = dt.now()
+    timestamp = None
     if datetime is not None:
         try:
             timestamp = dt.strptime(datetime, time_format)

@@ -2,7 +2,7 @@ from db.database import Database
 from services.coin_market_cap import CoinMarketCap
 from services.crypto_compare import CryptoCompare
 from datetime import datetime, timedelta
-from models.models import CryptoEntry
+from models.models import CryptoEntry, time_format
 from models.errors import InvalidTime, UnavailableTime
 import logging
 
@@ -19,7 +19,6 @@ class CoinResolver:
         self.db = Database()
         self.coin_market_cap = CoinMarketCap()
         self.crypto_compare = CryptoCompare()
-        self.last_update = self.db.get_last_update()
         logging.debug("COIN RESOLVER: Initialized coin resolver")
 
     def close(self):
@@ -29,7 +28,7 @@ class CoinResolver:
     def fetch_top_coins(self, limit: int, timestamp: datetime | None) -> list[CryptoEntry]:
         if (timestamp_for_query := self._get_fetch_timestamp(timestamp)) is not None:
             logging.info(
-                f"COIN RESOLVER: Fetching coins from DB with timestamp {timestamp_for_query.strftime('%Y-%m-%d %H:%M:%S')}")
+                f"COIN RESOLVER: Fetching coins from DB with timestamp {timestamp_for_query.strftime(time_format)}")
             return self._fetch_top_coins_locally(limit, timestamp_for_query)
         else:
             logging.info(f"COIN RESOLVER: Fetching coins from remote source")
@@ -47,7 +46,7 @@ class CoinResolver:
 
         # If querying about the future, raise error
         time_difference = datetime.now() - reference
-        if time_difference.total_seconds < 0:
+        if time_difference.total_seconds() < 0:
             raise InvalidTime()
 
         # If we have a close-enough timestamp in the db, use that
