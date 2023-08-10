@@ -4,6 +4,7 @@ from services.crypto_compare import CryptoCompare
 from datetime import datetime, timedelta
 from models.models import CryptoEntry
 from models.errors import InvalidTime, UnavailableTime
+import logging
 
 CURRENT_SEARCH_SECONDS_RANGE = 60
 HISTORICAL_SEARCH_SECONDS_RANGE = 60 * 60 * 24
@@ -13,27 +14,29 @@ class CoinResolver:
     db: Database
     coin_market_cap: CoinMarketCap
     crypto_compare: CryptoCompare
-    last_update: datetime | None
 
     def __init__(self):
         self.db = Database()
         self.coin_market_cap = CoinMarketCap()
         self.crypto_compare = CryptoCompare()
         self.last_update = self.db.get_last_update()
+        logging.debug("COIN RESOLVER: Initialized coin resolver")
 
     def close(self):
         self.db.close()
+        logging.debug("COIN RESOLVER: Closed coin resolver")
 
     def fetch_top_coins(self, limit: int, timestamp: datetime | None) -> list[CryptoEntry]:
         if (timestamp_for_query := self._get_fetch_timestamp(timestamp)) is not None:
+            logging.info(
+                f"COIN RESOLVER: Fetching coins from DB with timestamp {timestamp_for_query.strftime('%Y-%m-%d %H:%M:%S')}")
             return self._fetch_top_coins_locally(limit, timestamp_for_query)
         else:
+            logging.info(f"COIN RESOLVER: Fetching coins from remote source")
             # Fetch coins from remote source
-            top_coins = self._fetch_top_coins_remotely(timestamp)
+            top_coins = self._fetch_top_coins_remotely()
             # Store in DB for historical data
             self.db.insert_updated_data(top_coins)
-            # Track update
-            last_update = datetime.now()
             # Return within limit
             return top_coins[0:limit]
 
@@ -58,8 +61,9 @@ class CoinResolver:
     def _fetch_top_coins_locally(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
         return self.db.get_historical_data(limit, timestamp)
 
-    def _fetch_top_coins_remotely(self, timestamp: datetime) -> list[CryptoEntry]:
+    def _fetch_top_coins_remotely(self) -> list[CryptoEntry]:
         # Fetch network data
+        now = datetime.now()
         coin_prices = self.coin_market_cap.get_coin_prices()
         top_crypto = self.crypto_compare.get_top_crypto_list()
 
@@ -71,7 +75,7 @@ class CoinResolver:
                     name=coin,
                     value=value,
                     rank=idx,
-                    timestamp=timestamp
+                    timestamp=now
                 )
                 top_crypto_with_price.append(cryptoEntry)
 
