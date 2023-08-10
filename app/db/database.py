@@ -27,16 +27,23 @@ class Database:
     def insert_updated_data(self, crypto_entries: list[CryptoEntry]) -> None:
         self.collection.insert_many(crypto_entries)
 
-    def get_historical_data(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
-        results = self.collection.find(
+    def get_closest_timestamp(self, timestamp: datetime, seconds_range: int) -> datetime | None:
+        close_times = self.collection.distinct(
+            "timestamp",
             {"and":
                 [
-                    {"timestamp": {"$lt": timestamp}},
-                    {"timestamp": {"$gt": timestamp - timedelta(days=1)}}
+                    {"timestamp": {"$lt": timestamp +
+                                   timedelta(seconds=seconds_range/2)}},
+                    {"timestamp": {"$gt": timestamp -
+                                   timedelta(seconds=seconds_range/2)}}
                 ]
              },
-        ).sort("timestamp").sort("rank", -1).limit(limit)
+        )
+        return self._closest_timestamp(timestamp, close_times)
 
+    def get_historical_data(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
+        results = self.collection.find(
+            {"timestamp": timestamp}).sort("rank", -1).limit(limit)
         return list(map(lambda x: CryptoEntry(**x), results))
 
     def get_last_update(self) -> datetime | None:
@@ -44,3 +51,15 @@ class Database:
             return result[0]["timestamp"]
         else:
             return None
+
+    def _closest_timestamp(self, reference: datetime, timestamps: list[datetime]) -> datetime | None:
+        if len(timestamps) == 0:
+            return None
+        closest = timestamps[0]
+        min_diff = reference - closest
+        for elem in timestamps:
+            diff = reference - elem
+            if diff < min_diff:
+                closest = elem
+                min_diff = diff
+        return closest
