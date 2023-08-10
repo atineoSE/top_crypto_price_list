@@ -19,7 +19,7 @@ class CoinMarketCap:
             "X-CMC_PRO_API_KEY": COIN_MARKET_CAP_API_KEY
         }
 
-    def get_coin_prices(self) -> list[tuple[str, float]]:
+    def get_coin_prices(self) -> dict[str, float]:
         url = self.host + "cryptocurrency/listings/latest"
         url_params: dict[str, Any] = {
             "limit": 100,
@@ -28,8 +28,9 @@ class CoinMarketCap:
         }
         response = requests.get(url, headers=self.headers, params=url_params)
         data = response.json()["data"]
-        top_crypto_list = map(
-            lambda x: (x["symbol"], x["quote"]["USD"]["price"]),
-            data
-        )
-        return cast(list[tuple[str, float]], top_crypto_list)
+        coin_prices: dict[str, float] = {}
+        for item in data:
+            name = item["symbol"]
+            value = item["quote"]["USD"]["price"]
+            coin_prices[name] = value
+        return coin_prices

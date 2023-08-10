@@ -38,3 +38,9 @@ class Database:
         ).sort("timestamp").sort("rank", -1).limit(limit)
 
         return list(map(lambda x: CryptoEntry(**x), results))
+
+    def get_last_update(self) -> datetime | None:
+        if (result := self.collection.find().sort("timestamp")).limit(1) is not None:
+            return result[0]["timestamp"]
+        else:
+            return None
