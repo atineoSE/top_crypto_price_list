@@ -4,6 +4,7 @@ import requests
 from typing import Any, cast
 import logging
 import time
+import asyncio
 
 load_dotenv()
 
@@ -21,7 +22,7 @@ class CoinMarketCap:
             "X-CMC_PRO_API_KEY": COIN_MARKET_CAP_API_KEY
         }
 
-    def get_coin_prices(self) -> dict[str, float]:
+    async def get_coin_prices(self) -> dict[str, float]:
         url = self.host + "cryptocurrency/listings/latest"
         url_params: dict[str, Any] = {
             "limit": 100,

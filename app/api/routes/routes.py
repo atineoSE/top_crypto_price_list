@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.get("/top_price_list", response_model=None)
-def get_user(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> JSONResponse | PlainTextResponse:
+async def get_user(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> JSONResponse | PlainTextResponse:
     # Validate limit
     if limit < 10 or limit > 100:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -43,7 +43,7 @@ def get_user(request: Request, limit: int, datetime: str | None = None, format: 
     results: list[CryptoEntry] = []
     start_time = time.time()
     try:
-        results = coin_resolver.fetch_top_coins(limit, timestamp)
+        results = await coin_resolver.fetch_top_coins(limit, timestamp)
     except InvalidTime as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Input time was invalid.")

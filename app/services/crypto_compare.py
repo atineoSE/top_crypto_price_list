@@ -4,6 +4,7 @@ import requests
 from typing import Any, cast
 import logging
 import time
+import asyncio
 
 load_dotenv()
 
@@ -21,7 +22,7 @@ class CryptoCompare:
             "Authorization": "Apikey {}".format(CRYPTO_COMPARE_API_KEY)
         }
 
-    def get_top_crypto_list(self) -> list[str]:
+    async def get_top_crypto_list(self) -> list[str]:
         url = self.host + "data/top/totalvolfull"
         url_params: dict[str, Any] = {
             "limit": 100,

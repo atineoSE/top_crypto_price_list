@@ -24,7 +24,7 @@ class Database:
     def close(self):
         self.client.close()
 
-    def insert_updated_data(self, crypto_entries: list[CryptoEntry]) -> None:
+    async def insert_updated_data(self, crypto_entries: list[CryptoEntry]) -> None:
         crypto_entries_for_insertion = map(
             lambda x: x.model_dump(mode="json"), crypto_entries)
         self.collection.insert_many(crypto_entries_for_insertion)
