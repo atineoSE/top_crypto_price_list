@@ -5,6 +5,7 @@ from datetime import datetime as dt
 from models.errors import InvalidTime, UnavailableTime
 import sys
 import logging
+import time
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s', stream=sys.stdout)
@@ -40,6 +41,7 @@ def get_user(request: Request, limit: int, datetime: str | None = None, format: 
     # Fetch results
     coin_resolver = request.app.coin_resolver
     results: list[CryptoEntry] = []
+    start_time = time.time()
     try:
         results = coin_resolver.fetch_top_coins(limit, timestamp)
     except InvalidTime as e:
@@ -48,6 +50,9 @@ def get_user(request: Request, limit: int, datetime: str | None = None, format: 
     except UnavailableTime as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="No data available for the specified time.")
+    end_time = time.time()
+    logging.debug("Router: Time to fetch top coins: {} seconds".format(
+        end_time - start_time))
 
     # Format output and return
     formatted_output = output_format.output(results)

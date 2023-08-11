@@ -3,6 +3,7 @@ import os
 import requests
 from typing import Any, cast
 import logging
+import time
 
 load_dotenv()
 
@@ -27,6 +28,8 @@ class CoinMarketCap:
             "sort": "market_cap",
             "convert": "USD"
         }
+        logging.debug(
+            f"CoinMarketCap: starting request at {time.strftime('%X')}")
         response = requests.get(url, headers=self.headers, params=url_params)
         data = response.json()["data"]
         coin_prices: dict[str, float] = {}

@@ -3,6 +3,7 @@ import os
 import requests
 from typing import Any, cast
 import logging
+import time
 
 load_dotenv()
 
@@ -26,6 +27,8 @@ class CryptoCompare:
             "limit": 100,
             "tsym": "USD"
         }
+        logging.debug(
+            f"CryptoCompare: starting request at {time.strftime('%X')}")
         response = requests.get(url, headers=self.headers, params=url_params)
         data = response.json()["Data"]
         top_crypto = list(map(
