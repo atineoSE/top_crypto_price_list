@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, status
+from fastapi.responses import PlainTextResponse, JSONResponse
 from models.models import CryptoEntry, OutputFormat, time_format
 from datetime import datetime as dt
 from models.errors import InvalidTime, UnavailableTime
@@ -11,8 +12,8 @@ logging.basicConfig(level=logging.DEBUG,
 router = APIRouter()
 
 
-@router.get("/top_price_list", response_model=list[CryptoEntry] | str)
-def get_user(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> list[CryptoEntry] | str:
+@router.get("/top_price_list", response_model=None)
+def get_user(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> JSONResponse | PlainTextResponse:
     # Validate limit
     if limit < 10 or limit > 100:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -48,4 +49,9 @@ def get_user(request: Request, limit: int, datetime: str | None = None, format: 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="No data available for the specified time.")
 
-    return output_format.output(results)
+    # Format output and return
+    formatted_output = output_format.output(results)
+    if output_format == OutputFormat.JSON:
+        return JSONResponse(content=formatted_output)
+    else:
+        return PlainTextResponse(content=formatted_output)
