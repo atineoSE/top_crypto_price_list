@@ -19,19 +19,19 @@ class CoinResolver:
         self.db = Database()
         self.coin_market_cap = CoinMarketCap()
         self.crypto_compare = CryptoCompare()
-        logging.debug("COIN RESOLVER: Initialized coin resolver")
+        logging.debug("CoinResolver: Initialized coin resolver")
 
     def close(self):
         self.db.close()
-        logging.debug("COIN RESOLVER: Closed coin resolver")
+        logging.debug("CoinResolver: Closed coin resolver")
 
     def fetch_top_coins(self, limit: int, timestamp: datetime | None) -> list[CryptoEntry]:
         if (timestamp_for_query := self._get_fetch_timestamp(timestamp)) is not None:
             logging.info(
-                f"COIN RESOLVER: Fetching coins from DB with timestamp {timestamp_for_query.strftime(time_format)}")
+                f"CoinResolver: Fetching coins from DB with timestamp {timestamp_for_query.strftime(time_format)}")
             return self._fetch_top_coins_locally(limit, timestamp_for_query)
         else:
-            logging.info(f"COIN RESOLVER: Fetching coins from remote source")
+            logging.info(f"CoinResolver: Fetching coins from remote source")
             # Fetch coins from remote source
             top_coins = self._fetch_top_coins_remotely()
             # Store in DB for historical data
@@ -73,7 +73,7 @@ class CoinResolver:
                 cryptoEntry = CryptoEntry(
                     name=coin,
                     value=value,
-                    rank=idx,
+                    rank=idx+1,
                     timestamp=now
                 )
                 top_crypto_with_price.append(cryptoEntry)

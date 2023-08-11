@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 import requests
 from typing import Any, cast
+import logging
 
 load_dotenv()
 
@@ -33,4 +34,8 @@ class CoinMarketCap:
             name = item["symbol"]
             value = item["quote"]["USD"]["price"]
             coin_prices[name] = value
+
+        logging.debug(
+            f"CoinMarketCap: Got following coin prices: \n{coin_prices}")
+
         return coin_prices

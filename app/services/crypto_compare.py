@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 import requests
 from typing import Any, cast
+import logging
 
 load_dotenv()
 
@@ -27,8 +28,12 @@ class CryptoCompare:
         }
         response = requests.get(url, headers=self.headers, params=url_params)
         data = response.json()["Data"]
-        top_crypto = map(
+        top_crypto = list(map(
             lambda x: (x["CoinInfo"]["Name"]),
             data
-        )
-        return list(top_crypto)
+        ))
+
+        logging.debug(
+            f"CryptoCompare: Got following top coins: \n{top_crypto}")
+
+        return top_crypto
