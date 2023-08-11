@@ -25,7 +25,9 @@ class Database:
         self.client.close()
 
     def insert_updated_data(self, crypto_entries: list[CryptoEntry]) -> None:
-        self.collection.insert_many(crypto_entries)
+        crypto_entries_for_insertion = map(
+            lambda x: x.model_dump(mode="json"), crypto_entries)
+        self.collection.insert_many(crypto_entries_for_insertion)
 
     def get_closest_timestamp(self, timestamp: datetime, seconds_range: int) -> datetime | None:
         close_times = self.collection.distinct(

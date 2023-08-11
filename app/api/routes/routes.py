@@ -11,8 +11,8 @@ logging.basicConfig(level=logging.DEBUG,
 router = APIRouter()
 
 
-@router.get("/top_price_list", response_model=str)
-def get_user(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> str:
+@router.get("/top_price_list", response_model=list[CryptoEntry] | str)
+def get_user(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> list[CryptoEntry] | str:
     # Validate limit
     if limit < 10 or limit > 100:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,

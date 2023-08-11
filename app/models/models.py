@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from enum import Enum
 from datetime import datetime
+import json
 
 time_format = '%Y-%m-%d %H:%M:%S'
 
@@ -16,12 +17,9 @@ class OutputFormat(Enum):
     JSON = "JSON"
     CSV = "CSV"
 
-    def output(self, crypto_entries: list[CryptoEntry]) -> str:
+    def output(self, crypto_entries: list[CryptoEntry]) -> list[CryptoEntry] | str:
         if self == OutputFormat.JSON:
-            output = ""
-            for crypto_entry in crypto_entries:
-                output += str(crypto_entry.model_dump(mode="json")) + "\n"
-            return output
+            return crypto_entries
         else:
             output = ""
             for crypto_entry in crypto_entries:
