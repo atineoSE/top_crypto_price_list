@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
 from datetime import datetime, timedelta
-from models.models import CryptoEntry
+from app.models.models import CryptoEntry
 from pymongo.mongo_client import MongoClient
 from pymongo.collection import Collection
 

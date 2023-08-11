@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from api.routes.routes import router
-from db.database import Database
-from services.coin_resolver import CoinResolver
+from app.api.routes import router
+from app.db.database import Database
+from app.logic.coin_resolver import CoinResolver
 import uvicorn
 
 app = FastAPI()

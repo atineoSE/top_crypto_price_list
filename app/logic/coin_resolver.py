@@ -1,9 +1,9 @@
-from db.database import Database
-from services.coin_market_cap import CoinMarketCap
-from services.crypto_compare import CryptoCompare
+from app.db.database import Database
+from app.services.coin_market_cap import CoinMarketCap
+from app.services.crypto_compare import CryptoCompare
 from datetime import datetime, timedelta
-from models.models import CryptoEntry, time_format
-from models.errors import InvalidTime, UnavailableTime
+from app.models.models import CryptoEntry, time_format
+from app.models.errors import InvalidTime, UnavailableTime
 import logging
 import asyncio
 
