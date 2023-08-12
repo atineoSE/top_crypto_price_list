@@ -9,3 +9,6 @@ class TimeServiceMock:
 
     def now(self) -> datetime:
         return self.time
+
+    def parse_time(self, time_description: str) -> datetime:
+        return self.time

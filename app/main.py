@@ -19,6 +19,7 @@ def startup_db_client():
     time_service = TimeService()
     app.coin_resolver = CoinResolver(
         db, coin_market_cap, crypto_compare, time_service)
+    app.time_service = time_service
 
 
 @app.on_event("shutdown")

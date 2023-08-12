@@ -35,12 +35,12 @@ class CoinResolver:
         if (timestamp_for_query := self._get_fetch_timestamp(timestamp)) is not None:
             logging.info(
                 f"CoinResolver: Fetching coins from DB with timestamp {timestamp_for_query.strftime(time_format)}")
-            return self._fetch_top_coins_locally(limit, timestamp_for_query)
+            return self._fetch_top_coins_from_database(limit, timestamp_for_query)
         else:
             logging.info(f"CoinResolver: Fetching coins from remote source")
 
             # Fetch coins from remote source
-            top_coins = await self._fetch_top_coins_remotely()
+            top_coins = await self._fetch_top_coins_from_API_services()
 
             # Store in DB for historical data in the background
             db_task = asyncio.create_task(
@@ -52,27 +52,28 @@ class CoinResolver:
             return top_coins[0:limit]
 
     def _get_fetch_timestamp(self, reference: datetime | None) -> datetime | None:
-        # If no reference is provided, fetch now
+        now = self.time_service.now()
+        # No reference was given, we are performing a current search
         if reference is None:
-            return None
+            # If we fetched recently, return that timestamp
+            if (closest_timestamp := self.db.get_closest_timestamp(now, CURRENT_SEARCH_SECONDS_RANGE)) is not None:
+                return closest_timestamp
+            # Otherwise, return None
+            else:
+                return None
 
-        # If querying about the future, raise error
-        time_difference = self.time_service.now() - reference
-        if time_difference.total_seconds() < 0:
-            raise InvalidTime()
-
+        # We are querying for historical data.
         # If we have a close-enough timestamp in the db, use that
-        seconds_range = CURRENT_SEARCH_SECONDS_RANGE if reference is None else HISTORICAL_SEARCH_SECONDS_RANGE
-        if (closest_timestamp := self.db.get_closest_timestamp(reference, seconds_range)) is not None:
+        if (closest_timestamp := self.db.get_closest_timestamp(reference, HISTORICAL_SEARCH_SECONDS_RANGE)) is not None:
             return closest_timestamp
 
         # If it's not found, we don't have it
         raise UnavailableTime()
 
-    def _fetch_top_coins_locally(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
+    def _fetch_top_coins_from_database(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
         return self.db.get_historical_data(limit, timestamp)
 
-    async def _fetch_top_coins_remotely(self) -> list[CryptoEntry]:
+    async def _fetch_top_coins_from_API_services(self) -> list[CryptoEntry]:
         now = self.time_service.now()
 
         # Fetch network data in parallel
