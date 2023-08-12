@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, status
 from fastapi.responses import PlainTextResponse, JSONResponse
-from app.models.models import CryptoEntry, OutputFormat, time_format
+from app.models.models import CryptoEntry, OutputFormat
+from app.services.time_service import time_format
 from datetime import datetime as dt
 from app.models.errors import InvalidTime, UnavailableTime
 import sys

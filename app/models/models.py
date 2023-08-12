@@ -4,8 +4,6 @@ from datetime import datetime
 import json
 from typing import Any
 
-time_format = '%Y-%m-%d %H:%M:%S'
-
 
 class CryptoEntry(BaseModel):
     name: str

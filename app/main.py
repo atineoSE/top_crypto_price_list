@@ -3,6 +3,7 @@ from app.api.routes import router
 from app.db.database import Database
 from app.services.coin_market_cap import CoinMarketCap
 from app.services.crypto_compare import CryptoCompare
+from app.services.time_service import TimeService
 from app.logic.coin_resolver import CoinResolver
 import uvicorn
 
@@ -15,7 +16,9 @@ def startup_db_client():
     db = Database()
     coin_market_cap = CoinMarketCap()
     crypto_compare = CryptoCompare()
-    app.coin_resolver = CoinResolver(db, coin_market_cap, crypto_compare)
+    time_service = TimeService()
+    app.coin_resolver = CoinResolver(
+        db, coin_market_cap, crypto_compare, time_service)
 
 
 @app.on_event("shutdown")

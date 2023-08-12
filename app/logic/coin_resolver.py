@@ -1,9 +1,10 @@
 from app.db.database import Database
 from app.services.coin_market_cap import CoinMarketCap
 from app.services.crypto_compare import CryptoCompare
-from datetime import datetime, timedelta
-from app.models.models import CryptoEntry, time_format
+from app.services.time_service import TimeService, time_format
+from app.models.models import CryptoEntry
 from app.models.errors import InvalidTime, UnavailableTime
+from datetime import datetime
 import logging
 import asyncio
 
@@ -15,12 +16,14 @@ class CoinResolver:
     db: Database
     coin_market_cap: CoinMarketCap
     crypto_compare: CryptoCompare
+    time_service: TimeService
     db_tasks: set[asyncio.Task]
 
-    def __init__(self, db: Database, coin_market_cap: CoinMarketCap, crypto_compare: CryptoCompare):
+    def __init__(self, db: Database, coin_market_cap: CoinMarketCap, crypto_compare: CryptoCompare, time_service: TimeService):
         self.db = db
         self.coin_market_cap = coin_market_cap
         self.crypto_compare = crypto_compare
+        self.time_service = time_service
         self.db_tasks = set()
         logging.debug("CoinResolver: Initialized coin resolver")
 
@@ -54,7 +57,7 @@ class CoinResolver:
             return None
 
         # If querying about the future, raise error
-        time_difference = datetime.now() - reference
+        time_difference = self.time_service.now() - reference
         if time_difference.total_seconds() < 0:
             raise InvalidTime()
 
@@ -70,7 +73,7 @@ class CoinResolver:
         return self.db.get_historical_data(limit, timestamp)
 
     async def _fetch_top_coins_remotely(self) -> list[CryptoEntry]:
-        now = datetime.now()
+        now = self.time_service.now()
 
         # Fetch network data in parallel
         coin_prices, top_crypto = await asyncio.gather(
