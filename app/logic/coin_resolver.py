@@ -17,10 +17,10 @@ class CoinResolver:
     crypto_compare: CryptoCompare
     db_tasks: set[asyncio.Task]
 
-    def __init__(self):
-        self.db = Database()
-        self.coin_market_cap = CoinMarketCap()
-        self.crypto_compare = CryptoCompare()
+    def __init__(self, db: Database, coin_market_cap: CoinMarketCap, crypto_compare: CryptoCompare):
+        self.db = db
+        self.coin_market_cap = coin_market_cap
+        self.crypto_compare = crypto_compare
         self.db_tasks = set()
         logging.debug("CoinResolver: Initialized coin resolver")
 

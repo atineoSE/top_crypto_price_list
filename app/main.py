@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from app.api.routes import router
 from app.db.database import Database
+from app.services.coin_market_cap import CoinMarketCap
+from app.services.crypto_compare import CryptoCompare
 from app.logic.coin_resolver import CoinResolver
 import uvicorn
 
@@ -10,7 +12,10 @@ app.include_router(router)
 
 @app.on_event("startup")
 def startup_db_client():
-    app.coin_resolver = CoinResolver()
+    db = Database()
+    coin_market_cap = CoinMarketCap()
+    crypto_compare = CryptoCompare()
+    app.coin_resolver = CoinResolver(db, coin_market_cap, crypto_compare)
 
 
 @app.on_event("shutdown")
