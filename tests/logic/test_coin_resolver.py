@@ -1,29 +1,20 @@
 import pytest
 import asyncio
+from datetime import datetime, timedelta
+
 from app.logic.coin_resolver import CoinResolver, CURRENT_SEARCH_SECONDS_RANGE, HISTORICAL_SEARCH_SECONDS_RANGE
 from app.models.models import CryptoEntry
 from app.models.errors import UnavailableTime
 from app.services.time_service import time_format
+
 from tests.db.database_mock import DatabaseMock
-from tests.services.coin_market_cap_mock import CoinMarketCapMock
-from tests.services.crypto_compare_mock import CryptoCompareMock
+from tests.services.coin_market_cap_mock import CoinMarketCapMock, SAMPLE_COIN_PRICES, SAMPLE_COIN_PRICES_LATER
+from tests.services.crypto_compare_mock import CryptoCompareMock, SAMPLE_TOP_CRYPTO, SAMPLE_TOP_CRYPTO_LATER
 from tests.services.time_service_mock import TimeServiceMock
-from datetime import datetime, timedelta
+from tests.services.time_service_mock import SAMPLE_TIME, SAMPLE_TIME_SHORTLY_AFTER, SAMPLE_TIME_LONG_AFTER
+from tests.services.time_service_mock import SAMPLE_PREVIOUS_TIME_WITHIN_HISTORICAL_RANGE, SAMPLE_PREVIOUS_TIME_BEYOND_HISTORICAL_RANGE
 
-SAMPLE_TIME = datetime.strptime("2023-08-12 17:00:00", time_format)
-SAMPLE_TIME_SHORTLY_AFTER = SAMPLE_TIME + \
-    timedelta(seconds=CURRENT_SEARCH_SECONDS_RANGE-1)
-SAMPLE_TIME_LONG_AFTER = SAMPLE_TIME + \
-    timedelta(seconds=CURRENT_SEARCH_SECONDS_RANGE)
-SAMPLE_PREVIOUS_TIME_WITHIN_HISTORICAL_RANGE = SAMPLE_TIME - \
-    timedelta(seconds=HISTORICAL_SEARCH_SECONDS_RANGE)
-SAMPLE_PREVIOUS_TIME_BEYOND_HISTORICAL_RANGE = SAMPLE_TIME - \
-    timedelta(seconds=HISTORICAL_SEARCH_SECONDS_RANGE+1)
 
-SAMPLE_COIN_PRICES = {"BTC": 29434.824505477198, "ETH": 1851.0382543598475}
-SAMPLE_COIN_PRICES_AFTER = {"ETH": 2500, "BTC": 1800}
-SAMPLE_TOP_CRYPTO = ["BTC", "ETH"]
-SAMPLE_TOP_CRYPTO_AFTER = ["ETH", "BTC"]
 SAMPLE_RESULTS = [
     CryptoEntry(name="BTC", value=29434.824505477198,
                 rank=1, timestamp=SAMPLE_TIME),
@@ -110,8 +101,8 @@ async def test_current_fetch_for_top_coins_long_after_a_previous_fetch_retrieves
 
     # Act and assert
     time_service_mock.time = SAMPLE_TIME_LONG_AFTER
-    coin_market_cap_mock.coin_prices = SAMPLE_COIN_PRICES_AFTER
-    crypto_compare_mock.top_crypto_list = SAMPLE_TOP_CRYPTO_AFTER
+    coin_market_cap_mock.coin_prices = SAMPLE_COIN_PRICES_LATER
+    crypto_compare_mock.top_crypto_list = SAMPLE_TOP_CRYPTO_LATER
     results = await sut.fetch_top_coins(2, None)
     assert SAMPLE_RESULTS_LONG_AFTER == results
     assert db_mock.num_historical_data_fetches == 0

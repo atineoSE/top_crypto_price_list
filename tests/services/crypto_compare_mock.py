@@ -1,3 +1,7 @@
+SAMPLE_TOP_CRYPTO = ["BTC", "ETH"]
+SAMPLE_TOP_CRYPTO_LATER = ["ETH", "BTC"]
+
+
 class CryptoCompareMock:
     top_crypto_list: list[str]
     num_invocations: int
