@@ -2,6 +2,7 @@ import pytest
 import asyncio
 from app.logic.coin_resolver import CoinResolver, CURRENT_SEARCH_SECONDS_RANGE, HISTORICAL_SEARCH_SECONDS_RANGE
 from app.models.models import CryptoEntry
+from app.models.errors import UnavailableTime
 from app.services.time_service import time_format
 from tests.db.database_mock import DatabaseMock
 from tests.services.coin_market_cap_mock import CoinMarketCapMock
@@ -15,9 +16,9 @@ SAMPLE_TIME_SHORTLY_AFTER = SAMPLE_TIME + \
 SAMPLE_TIME_LONG_AFTER = SAMPLE_TIME + \
     timedelta(seconds=CURRENT_SEARCH_SECONDS_RANGE)
 SAMPLE_PREVIOUS_TIME_WITHIN_HISTORICAL_RANGE = SAMPLE_TIME - \
-    timedelta(seconds=HISTORICAL_SEARCH_SECONDS_RANGE-1)
-SAMPLE_PREVIOUS_TIME_BEYOND_HISTORICAL_RANGE = SAMPLE_TIME - \
     timedelta(seconds=HISTORICAL_SEARCH_SECONDS_RANGE)
+SAMPLE_PREVIOUS_TIME_BEYOND_HISTORICAL_RANGE = SAMPLE_TIME - \
+    timedelta(seconds=HISTORICAL_SEARCH_SECONDS_RANGE+1)
 
 SAMPLE_COIN_PRICES = {"BTC": 29434.824505477198, "ETH": 1851.0382543598475}
 SAMPLE_COIN_PRICES_AFTER = {"ETH": 2500, "BTC": 1800}
@@ -119,10 +120,79 @@ async def test_current_fetch_for_top_coins_long_after_a_previous_fetch_retrieves
 
 
 @pytest.mark.asyncio
-async def test_historical_fetch_for_top_coins_retrieves_data_from_database_if_found():
-    pass
+async def test_historical_fetch_for_top_coins_retrieves_data_from_database_if_exact_timestamp_is_found():
+    # Arrange
+    db_mock = DatabaseMock(SAMPLE_TIME, SAMPLE_RESULTS)
+    coin_market_cap_mock = CoinMarketCapMock(SAMPLE_COIN_PRICES)
+    crypto_compare_mock = CryptoCompareMock(SAMPLE_TOP_CRYPTO)
+    time_service_mock = TimeServiceMock(SAMPLE_TIME)
+
+    sut = CoinResolver(db_mock, coin_market_cap_mock,
+                       crypto_compare_mock, time_service_mock)
+
+    # Act
+    results = await sut.fetch_top_coins(2, SAMPLE_TIME)
+
+    # Assert
+    assert SAMPLE_RESULTS == results
+    assert db_mock.num_historical_data_fetches == 1
+    assert coin_market_cap_mock.num_invocations == 0
+    assert crypto_compare_mock.num_invocations == 0
 
 
 @pytest.mark.asyncio
-async def test_historical_fetch_for_top_coins_throws_error_if_database_is_missing_data():
-    pass
+async def test_historical_fetch_for_top_coins_retrieves_data_from_database_if_timestamp_within_range_is_found():
+    # Arrange
+    db_mock = DatabaseMock(SAMPLE_TIME, SAMPLE_RESULTS)
+    coin_market_cap_mock = CoinMarketCapMock(SAMPLE_COIN_PRICES)
+    crypto_compare_mock = CryptoCompareMock(SAMPLE_TOP_CRYPTO)
+    time_service_mock = TimeServiceMock(SAMPLE_TIME)
+
+    sut = CoinResolver(db_mock, coin_market_cap_mock,
+                       crypto_compare_mock, time_service_mock)
+
+    # Act
+    results = await sut.fetch_top_coins(2, SAMPLE_PREVIOUS_TIME_WITHIN_HISTORICAL_RANGE)
+
+    # Assert
+    assert SAMPLE_RESULTS == results
+    assert db_mock.num_historical_data_fetches == 1
+    assert coin_market_cap_mock.num_invocations == 0
+    assert crypto_compare_mock.num_invocations == 0
+
+
+@pytest.mark.asyncio
+async def test_historical_fetch_for_top_coins_raises_error_if_timestamp_within_range_is_not_found():
+    # Arrange
+    db_mock = DatabaseMock(SAMPLE_TIME, SAMPLE_RESULTS)
+    coin_market_cap_mock = CoinMarketCapMock(SAMPLE_COIN_PRICES)
+    crypto_compare_mock = CryptoCompareMock(SAMPLE_TOP_CRYPTO)
+    time_service_mock = TimeServiceMock(SAMPLE_TIME)
+
+    sut = CoinResolver(db_mock, coin_market_cap_mock,
+                       crypto_compare_mock, time_service_mock)
+
+    # Act and assert
+    with pytest.raises(UnavailableTime):
+        results = await sut.fetch_top_coins(2, SAMPLE_PREVIOUS_TIME_BEYOND_HISTORICAL_RANGE)
+
+
+@pytest.mark.asyncio
+async def test_fetch_for_top_coins_returns_number_of_results_given_in_limit():
+    # Arrange
+    db_mock = DatabaseMock()
+    coin_market_cap_mock = CoinMarketCapMock(SAMPLE_COIN_PRICES)
+    crypto_compare_mock = CryptoCompareMock(SAMPLE_TOP_CRYPTO)
+    time_service_mock = TimeServiceMock(SAMPLE_TIME)
+
+    sut = CoinResolver(db_mock, coin_market_cap_mock,
+                       crypto_compare_mock, time_service_mock)
+
+    # Act
+    results = await sut.fetch_top_coins(1, None)
+
+    # Assert
+    assert SAMPLE_RESULTS[:1] == results
+    assert db_mock.num_historical_data_fetches == 0
+    assert coin_market_cap_mock.num_invocations == 1
+    assert crypto_compare_mock.num_invocations == 1

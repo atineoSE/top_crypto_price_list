@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.models.models import CryptoEntry
 
 
@@ -18,7 +18,11 @@ class DatabaseMock:
             self.closest_timestamp = crypto_entries[0].timestamp
 
     def get_closest_timestamp(self, timestamp: datetime, seconds_range: int) -> datetime | None:
-        return self.closest_timestamp
+        if (closest_timestamp := self.closest_timestamp) is not None:
+            if (closest_timestamp - timedelta(seconds=seconds_range)) <= timestamp <= (closest_timestamp + timedelta(seconds=seconds_range)):
+                return self.closest_timestamp
+
+        return None
 
     def get_historical_data(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
         self.num_historical_data_fetches += 1
