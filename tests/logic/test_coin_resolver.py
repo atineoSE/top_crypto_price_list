@@ -13,20 +13,7 @@ from tests.services.crypto_compare_mock import CryptoCompareMock, SAMPLE_TOP_CRY
 from tests.services.time_service_mock import TimeServiceMock
 from tests.services.time_service_mock import SAMPLE_TIME, SAMPLE_TIME_SHORTLY_AFTER, SAMPLE_TIME_LONG_AFTER
 from tests.services.time_service_mock import SAMPLE_PREVIOUS_TIME_WITHIN_HISTORICAL_RANGE, SAMPLE_PREVIOUS_TIME_BEYOND_HISTORICAL_RANGE
-
-
-SAMPLE_RESULTS = [
-    CryptoEntry(name="BTC", value=29434.824505477198,
-                rank=1, timestamp=SAMPLE_TIME),
-    CryptoEntry(name="ETH", value=1851.0382543598475,
-                rank=2, timestamp=SAMPLE_TIME)
-]
-SAMPLE_RESULTS_LONG_AFTER = [
-    CryptoEntry(name="ETH", value=2500,
-                rank=1, timestamp=SAMPLE_TIME_LONG_AFTER),
-    CryptoEntry(name="BTC", value=1800,
-                rank=2, timestamp=SAMPLE_TIME_LONG_AFTER)
-]
+from tests.logic.coin_resolver_mock import SAMPLE_RESULTS, SAMPLE_RESULTS_LONG_AFTER
 
 
 @pytest.mark.asyncio
