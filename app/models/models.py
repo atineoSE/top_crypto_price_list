@@ -22,5 +22,6 @@ class OutputFormat(Enum):
         else:
             output = "rank,symbol,price_USD,timestamp\n"
             for crypto_entry in crypto_entries:
-                output += f"{crypto_entry.rank},{crypto_entry.name},{crypto_entry.value},{crypto_entry.timestamp}\n"
+                timestamp = crypto_entry.timestamp.isoformat()
+                output += f"{crypto_entry.rank},{crypto_entry.name},{crypto_entry.value},{timestamp}\n"
             return output

@@ -2,10 +2,9 @@ from fastapi.testclient import TestClient
 import json
 
 from app.main import app
-from app.services.time_service import time_format
 
 from tests.services.time_service_mock import TimeServiceMock, SAMPLE_TIME, SAMPLE_TIME_SHORTLY_AFTER
-from tests.logic.coin_resolver_mock import CoinResolverMock, SAMPLE_RESULTS, SAMPLE_RESULTS_JSON
+from tests.logic.coin_resolver_mock import CoinResolverMock, SAMPLE_RESULTS, SAMPLE_RESULTS_JSON, SAMPLE_RESULTS_CSV
 
 
 def test_top_price_request_fails_if_limit_is_out_of_range():
@@ -34,7 +33,7 @@ def test_top_price_request_fails_if_timestamp_has_wrong_format():
     client = TestClient(app)
 
     # Act
-    response = client.get("/top_price_list?limit=10&datetime=2020-01-01")
+    response = client.get("/top_price_list?limit=10&datetime=2020 01 01")
 
     # Assert
     assert response.status_code == 400
@@ -46,7 +45,7 @@ def test_top_price_request_fails_if_timestamp_is_in_the_future():
     time_service_mock = TimeServiceMock(SAMPLE_TIME)
     app.time_service = time_service_mock
     client = TestClient(app)
-    future_timestamp = SAMPLE_TIME_SHORTLY_AFTER.strftime(time_format)
+    future_timestamp = SAMPLE_TIME_SHORTLY_AFTER.isoformat()
 
     # Act
     response = client.get(
@@ -92,7 +91,7 @@ def test_top_price_request_for_historical_data_succeeds():
     app.time_service = time_service_mock
     app.coin_resolver = coin_resolver_mock
     client = TestClient(app)
-    timestamp = SAMPLE_TIME.strftime(time_format)
+    timestamp = SAMPLE_TIME.isoformat()
 
     # Act
     response = client.get(f"/top_price_list?limit=10&datetime={timestamp}")
@@ -109,7 +108,7 @@ def test_top_price_request_for_historical_data_fails_if_data_is_not_found():
     app.time_service = time_service_mock
     app.coin_resolver = coin_resolver_mock
     client = TestClient(app)
-    timestamp = SAMPLE_TIME.strftime(time_format)
+    timestamp = SAMPLE_TIME.isoformat()
 
     # Act
     response = client.get(f"/top_price_list?limit=10&datetime={timestamp}")
@@ -117,3 +116,19 @@ def test_top_price_request_for_historical_data_fails_if_data_is_not_found():
     # Assert
     assert response.status_code == 404
     assert "no data" in response.json()["detail"].lower()
+
+
+def test_top_price_request_can_be_formatted_as_csv():
+    # Arrange
+    time_service_mock = TimeServiceMock(SAMPLE_TIME)
+    coin_resolver_mock = CoinResolverMock(SAMPLE_RESULTS)
+    app.time_service = time_service_mock
+    app.coin_resolver = coin_resolver_mock
+    client = TestClient(app)
+
+    # Act
+    response = client.get(f"/top_price_list?limit=10&format=csv")
+
+    # Assert
+    assert response.status_code == 200
+    assert response.text == SAMPLE_RESULTS_CSV

@@ -1,9 +1,9 @@
 from app.db.database import Database
 from app.services.coin_market_cap import CoinMarketCap
 from app.services.crypto_compare import CryptoCompare
-from app.services.time_service import TimeService, time_format
+from app.services.time_service import TimeService
 from app.models.models import CryptoEntry
-from app.models.errors import InvalidTime, UnavailableTime
+from app.models.errors import UnavailableTime
 from datetime import datetime
 import logging
 import asyncio
@@ -34,7 +34,7 @@ class CoinResolver:
     async def fetch_top_coins(self, limit: int, timestamp: datetime | None) -> list[CryptoEntry]:
         if (timestamp_for_query := self._get_fetch_timestamp(timestamp)) is not None:
             logging.info(
-                f"CoinResolver: Fetching coins from DB with timestamp {timestamp_for_query.strftime(time_format)}")
+                f"CoinResolver: Fetching coins from DB with timestamp {timestamp_for_query.isoformat()}")
             return self._fetch_top_coins_from_database(limit, timestamp_for_query)
         else:
             logging.info(f"CoinResolver: Fetching coins from remote source")

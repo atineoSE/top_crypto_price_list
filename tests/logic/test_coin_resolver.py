@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from app.logic.coin_resolver import CoinResolver, CURRENT_SEARCH_SECONDS_RANGE, HISTORICAL_SEARCH_SECONDS_RANGE
 from app.models.models import CryptoEntry
 from app.models.errors import UnavailableTime
-from app.services.time_service import time_format
 
 from tests.db.database_mock import DatabaseMock
 from tests.services.coin_market_cap_mock import CoinMarketCapMock, SAMPLE_COIN_PRICES, SAMPLE_COIN_PRICES_LATER

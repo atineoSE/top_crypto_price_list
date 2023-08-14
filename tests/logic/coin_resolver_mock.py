@@ -32,6 +32,11 @@ SAMPLE_RESULTS_JSON = '[\
     }\
 ]\
 '
+SAMPLE_RESULTS_CSV = """\
+rank,symbol,price_USD,timestamp
+1,BTC,29434.824505477198,2023-08-12T17:00:00
+2,ETH,1851.0382543598475,2023-08-12T17:00:00
+"""
 
 
 class CoinResolverMock:

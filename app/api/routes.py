@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Request, HTTPException, status
 from fastapi.responses import PlainTextResponse, JSONResponse
 from app.models.models import CryptoEntry, OutputFormat
-from datetime import datetime
-from app.services.time_service import TimeService, time_format
-from app.models.errors import InvalidTime, UnavailableTime
+from datetime import datetime as dt
+from app.services.time_service import TimeService
+from app.models.errors import UnavailableTime
 from app.logic.coin_resolver import CoinResolver
 import sys
 import logging
@@ -39,15 +39,15 @@ def _validate_limit(limit: int) -> None:
                             detail="Limit must be between 10 and 100")
 
 
-def _validate_timestamp(time_service: TimeService, datetime: str | None) -> datetime | None:
+def _validate_timestamp(time_service: TimeService, datetime: str | None) -> dt | None:
     timestamp = None
     if datetime is not None:
         # If time format is not recognized, raise error
         try:
-            timestamp = time_service.parse_time(datetime)
-        except InvalidTime:
+            timestamp = dt.fromisoformat(datetime)
+        except ValueError:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Datetime must be expressed in the format {}".format(time_format))
+                                detail="Datetime must be expressed in ISO format")
 
         # If querying about the future, raise error
         time_difference = time_service.now() - timestamp
@@ -68,7 +68,7 @@ def _validate_output_format(format: str | None) -> OutputFormat:
     return output_format
 
 
-async def _fetch_results(coin_resolver: CoinResolver, limit: int, timestamp: datetime | None) -> list[CryptoEntry]:
+async def _fetch_results(coin_resolver: CoinResolver, limit: int, timestamp: dt | None) -> list[CryptoEntry]:
     results: list[CryptoEntry] = []
     start_time = time.time()
     try:
