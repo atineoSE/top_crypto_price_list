@@ -35,7 +35,7 @@ class CoinResolver:
         if (timestamp_for_query := self._get_fetch_timestamp(timestamp)) is not None:
             logging.info(
                 f"CoinResolver: Fetching coins from DB with timestamp {timestamp_for_query.isoformat()}")
-            return self._fetch_top_coins_from_database(limit, timestamp_for_query)
+            return self.db.get_historical_data(limit, timestamp_for_query)
         else:
             logging.info(f"CoinResolver: Fetching coins from remote source")
 
@@ -52,10 +52,10 @@ class CoinResolver:
             return top_coins[0:limit]
 
     def _get_fetch_timestamp(self, reference: datetime | None) -> datetime | None:
-        now = self.time_service.now()
         # No reference was given, we are performing a current search
         if reference is None:
             # If we fetched recently, return that timestamp
+            now = self.time_service.now()
             if (closest_timestamp := self.db.get_closest_timestamp(now, CURRENT_SEARCH_SECONDS_RANGE)) is not None:
                 return closest_timestamp
             # Otherwise, return None
@@ -69,9 +69,6 @@ class CoinResolver:
 
         # If it's not found, we don't have it
         raise UnavailableTime()
-
-    def _fetch_top_coins_from_database(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
-        return self.db.get_historical_data(limit, timestamp)
 
     async def _fetch_top_coins_from_API_services(self) -> list[CryptoEntry]:
         now = self.time_service.now()

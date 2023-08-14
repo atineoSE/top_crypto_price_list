@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.services.time_service import TimeService
 from app.logic.coin_resolver import CURRENT_SEARCH_SECONDS_RANGE, HISTORICAL_SEARCH_SECONDS_RANGE
 
 
-SAMPLE_TIME = datetime.fromisoformat("2023-08-12T17:00:00")
+SAMPLE_TIME = datetime.fromisoformat(
+    "2023-08-12T17:00:00").replace(tzinfo=timezone.utc)
 SAMPLE_TIME_SHORTLY_AFTER = SAMPLE_TIME + \
     timedelta(seconds=CURRENT_SEARCH_SECONDS_RANGE-1)
 SAMPLE_TIME_LONG_AFTER = SAMPLE_TIME + \

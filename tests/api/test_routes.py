@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 import json
+from urllib import parse
 
 from app.main import app
 
@@ -31,9 +32,11 @@ def test_top_price_request_fails_if_timestamp_has_wrong_format():
     time_service_mock = TimeServiceMock(SAMPLE_TIME)
     app.time_service = time_service_mock
     client = TestClient(app)
+    non_iso_timestamp = "2023 08 12"
 
     # Act
-    response = client.get("/top_price_list?limit=10&datetime=2020 01 01")
+    response = client.get(
+        f"/top_price_list?limit=10&datetime={parse.quote(non_iso_timestamp)}")
 
     # Assert
     assert response.status_code == 400
@@ -49,7 +52,7 @@ def test_top_price_request_fails_if_timestamp_is_in_the_future():
 
     # Act
     response = client.get(
-        f"/top_price_list?limit=10&datetime={future_timestamp}")
+        f"/top_price_list?limit=10&datetime={parse.quote(future_timestamp)}")
 
     # Assert
     assert response.status_code == 400
@@ -94,7 +97,8 @@ def test_top_price_request_for_historical_data_succeeds():
     timestamp = SAMPLE_TIME.isoformat()
 
     # Act
-    response = client.get(f"/top_price_list?limit=10&datetime={timestamp}")
+    response = client.get(
+        f"/top_price_list?limit=10&datetime={parse.quote(timestamp)}")
 
     # Assert
     assert response.status_code == 200
@@ -111,7 +115,8 @@ def test_top_price_request_for_historical_data_fails_if_data_is_not_found():
     timestamp = SAMPLE_TIME.isoformat()
 
     # Act
-    response = client.get(f"/top_price_list?limit=10&datetime={timestamp}")
+    response = client.get(
+        f"/top_price_list?limit=10&datetime={parse.quote(timestamp)}")
 
     # Assert
     assert response.status_code == 404

@@ -44,7 +44,7 @@ def _validate_timestamp(time_service: TimeService, datetime: str | None) -> dt |
     if datetime is not None:
         # If time format is not recognized, raise error
         try:
-            timestamp = dt.fromisoformat(datetime)
+            timestamp = time_service.parse_time(datetime)
         except ValueError:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Datetime must be expressed in ISO format")

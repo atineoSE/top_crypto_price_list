@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_serializer
 from enum import Enum
 from datetime import datetime
 import json
@@ -10,6 +10,15 @@ class CryptoEntry(BaseModel):
     value: float
     rank: int
     timestamp: datetime
+
+    @model_serializer
+    def serialize(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "value": self.value,
+            "rank": self.rank,
+            "timestamp": self.timestamp.isoformat()
+        }
 
 
 class OutputFormat(Enum):

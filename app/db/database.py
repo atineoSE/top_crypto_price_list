@@ -30,23 +30,42 @@ class Database:
         self.collection.insert_many(crypto_entries_for_insertion)
 
     def get_closest_timestamp(self, timestamp: datetime, seconds_range: int) -> datetime | None:
-        close_times = self.collection.distinct(
-            "timestamp",
-            {"and":
-                [
-                    {"timestamp": {"$lt": timestamp +
-                                   timedelta(seconds=seconds_range/2)}},
-                    {"timestamp": {"$gt": timestamp -
-                                   timedelta(seconds=seconds_range/2)}}
-                ]
-             },
-        )
-        return self._closest_timestamp(timestamp, close_times)
+        try:
+            close_timestamps = self.collection.aggregate([
+                # {"$match":
+                #     {"and":
+                #         [
+                #             {"timestamp": {"$lte": timestamp +
+                #                            timedelta(seconds=seconds_range/2)}},
+                #             {"timestamp": {"$gte": timestamp -
+                #                            timedelta(seconds=seconds_range/2)}}
+                #         ]
+                #      }
+                #  },
+                {"$group":
+                    {
+                        "_id": None,
+                        "timestamp": {"$addToSet": "$timestamp"}
+                    }
+                 }
+            ])
+            alive = close_timestamps.alive
+            value = list(map(lambda t: datetime.fromisoformat(t),
+                         close_timestamps.next()["timestamp"]))
+            return self._closest_timestamp(timestamp, value)
+        except StopIteration:
+            return None
 
     def get_historical_data(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
         results = self.collection.find(
             {"timestamp": timestamp}).sort("rank", -1).limit(limit)
-        return list(map(lambda x: CryptoEntry(**x), results))
+        converted_results = []
+        for result in results:
+            print(result)
+            cryptoEntry = CryptoEntry(**result)
+            converted_results.append(cryptoEntry)
+        # converted_results = list(map(lambda x: CryptoEntry(**x), results))
+        return converted_results
 
     def _closest_timestamp(self, reference: datetime, timestamps: list[datetime]) -> datetime | None:
         if len(timestamps) == 0:
