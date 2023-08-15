@@ -22,7 +22,7 @@ class CryptoCompare:
             "Authorization": "Apikey {}".format(CRYPTO_COMPARE_API_KEY)
         }
 
-    async def get_top_crypto_list(self) -> list[str]:
+    async def get_top_crypto_list(self) -> list[tuple[str, str]]:
         url = self.host + "data/top/totalvolfull"
         url_params: dict[str, Any] = {
             "limit": 100,
@@ -33,7 +33,7 @@ class CryptoCompare:
         response = requests.get(url, headers=self.headers, params=url_params)
         data = response.json()["Data"]
         top_crypto = list(map(
-            lambda x: (x["CoinInfo"]["Name"]),
+            lambda x: (x["CoinInfo"]["Name"], x["CoinInfo"]["FullName"]),
             data
         ))
 

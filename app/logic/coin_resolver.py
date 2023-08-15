@@ -83,14 +83,25 @@ class CoinResolver:
 
         # Merge results
         top_crypto_with_price: list[CryptoEntry] = []
-        for idx, coin in enumerate(top_crypto):
-            if (value := coin_prices.get(coin)) is not None:
+        idx = 1
+        for coin_symbol, coin_name in top_crypto:
+            # Try match by symbol
+            value = coin_prices.get(coin_symbol)
+            if value is None:
+                # If we couldn't find it, try match by name
+                value = coin_prices.get(coin_name)
+
+            if value is not None:
                 cryptoEntry = CryptoEntry(
-                    name=coin,
+                    name=coin_symbol,
                     value=value,
-                    rank=idx+1,
+                    rank=idx,
                     timestamp=now
                 )
                 top_crypto_with_price.append(cryptoEntry)
+                idx += 1
+            else:
+                logging.debug(
+                    f"CoinResolver: could not find price for {coin_symbol}. Skipping.")
 
         return top_crypto_with_price
