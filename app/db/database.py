@@ -99,9 +99,9 @@ class Database:
         if len(timestamps) == 0:
             return None
         closest = timestamps[0]
-        min_diff = reference - closest
+        min_diff = abs((reference - closest).total_seconds())
         for elem in timestamps:
-            diff = reference - elem
+            diff = abs((reference - elem).total_seconds())
             if diff < min_diff:
                 closest = elem
                 min_diff = diff
