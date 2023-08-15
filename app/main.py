@@ -13,6 +13,7 @@ app.include_router(router)
 
 @app.on_event("startup")
 def startup_db_client():
+    """Startup of app resources"""
     db = Database()
     coin_market_cap = CoinMarketCap()
     crypto_compare = CryptoCompare()
@@ -24,6 +25,7 @@ def startup_db_client():
 
 @app.on_event("shutdown")
 def shutdown_db_client():
+    """Tear down of app resources"""
     app.coin_resolver.close()
 
 

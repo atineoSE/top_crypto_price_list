@@ -13,6 +13,7 @@ db_password = os.getenv("DB_PASSWORD")
 
 
 class Database:
+    """Database to store historical coin data"""
     client: MongoClient
     collection: Collection
 
@@ -23,14 +24,29 @@ class Database:
         self.collection = self.client["crypto"]["top_assets"]
 
     def close(self):
+        """Close database connection"""
         self.client.close()
 
     async def insert_updated_data(self, crypto_entries: list[CryptoEntry]) -> None:
+        """Inserts new data about crypto entries.
+
+        Args:
+            crypto_entries (list[CryptoEntry]): crypto entries to store
+        """
         crypto_entries_for_insertion = map(
             lambda x: x.model_dump(mode="json"), crypto_entries)
         self.collection.insert_many(crypto_entries_for_insertion)
 
     def get_closest_timestamp(self, timestamp: datetime, seconds_range: int) -> datetime | None:
+        """Gets closest timestamps to the one given as reference within the input range of seconds.
+
+        Args:
+            timestamp (datetime): reference time to search around
+            seconds_range (int): number of seconds around the reference time for the search
+
+        Returns
+            datetime | None: the closest timestamp to the reference withing the input range or None, if not found.
+        """
         max_timestamp = timestamp + timedelta(seconds=seconds_range/2)
         min_timestamp = timestamp - timedelta(seconds=seconds_range/2)
         try:
@@ -61,6 +77,15 @@ class Database:
             return None
 
     def get_historical_data(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
+        """Gets historical data for crypto entries for a given timestamp.
+
+        Args:
+            limit (int): maximum number of results to return, sorted by rank
+            timestamp (datetime): timestamp for the search
+
+        Returns:
+            list[CryptoEntry]: list of crypto entries that matched the search criteria
+        """
         results = self.collection.find(
             {"timestamp": timestamp.isoformat()}).sort("rank").limit(limit)
         converted_results = list(map(lambda x: CryptoEntry(**x), results))

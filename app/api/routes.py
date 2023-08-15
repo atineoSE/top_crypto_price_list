@@ -16,7 +16,24 @@ router = APIRouter()
 
 
 @router.get("/top_price_list", response_model=None)
-async def get_user(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> JSONResponse | PlainTextResponse:
+async def get_top_price_list(request: Request, limit: int, datetime: str | None = None, format: str | None = None) -> JSONResponse | PlainTextResponse:
+    """Gets sorted price list for top crypto assets by market volume.
+
+    Args:
+        limit (int): Number of results to return. Valid values are within 10 and 100.
+        datetime (str, optional): Datetime to query about. Defaults to None.
+        format (str, optional): Output format. Defaults to None. It can be either JSON or CSV.
+
+    Raises:
+        HTTPException: If data validation fails, namely:
+        - If limit is not within 10 and 100
+        - If datetime is not in ISO format
+        - If datetime is in the future
+        - If format is not CSV or JSON
+
+    Returns:
+        JSONResponse | PlainTextResponse: Response containing top crypto assets by market volume.
+    """
     # Validate limit
     _validate_limit(limit)
 

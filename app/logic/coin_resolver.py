@@ -13,6 +13,9 @@ HISTORICAL_SEARCH_SECONDS_RANGE = 60 * 60 * 24
 
 
 class CoinResolver:
+    """Resolves coin data from different sources: 
+    external API services for current time queries and database for historical queries.
+    """
     db: Database
     coin_market_cap: CoinMarketCap
     crypto_compare: CryptoCompare
@@ -28,10 +31,37 @@ class CoinResolver:
         logging.debug("CoinResolver: Initialized coin resolver")
 
     def close(self):
+        """Frees up resources."""
         self.db.close()
         logging.debug("CoinResolver: Closed coin resolver")
 
     async def fetch_top_coins(self, limit: int, timestamp: datetime | None) -> list[CryptoEntry]:
+        """Fetches top coins by market volume.
+
+        This function operates in one of two modes: "current" or "historical".
+        If there is no timestamp given, the "current" mode is used.
+        If there is a timestamp given, the "historical" mode is used.
+
+        When in "current" more, updated coin data is retrieved from external API services,
+        unless another current query has been performed within CURRENT_SEARCH_SECONDS_RANGE,
+        in which case the cached result is returned.
+
+        Coin data retrieved from external services is stored in the database so that it
+        becomes available for historical queries.
+
+        When in "historical" mode, the coin data is retrieved from the database, if available.
+        If not available, an UnavailableTime exception is raised.
+
+        Args:
+            limit (int): The number of coins to return.
+            timestamp (datetime, optional): The timestamp to use for historical queries. Defaults to None.
+
+        Raises:
+            UnavailableTime: If we hold no data in the database for the requested timestamp.
+
+        Returns:
+            list[CryptoEntry]: a list of CryptoEntry objects.
+        """
         if (timestamp_for_query := self._get_fetch_timestamp(timestamp)) is not None:
             logging.info(
                 f"CoinResolver: Fetching coins from DB with timestamp {timestamp_for_query.isoformat()}")

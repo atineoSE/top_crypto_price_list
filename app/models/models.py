@@ -6,6 +6,14 @@ from typing import Any
 
 
 class CryptoEntry(BaseModel):
+    """A model to represent a crypto entry.
+
+    Fields:
+        name: The name of the crypto.
+        value: The value of the crypto in USD.
+        rank: The rank of the crypto, starting with 1 for the top coin.
+        timestamp: The timestamp corresponding to the value sampled.
+    """
     name: str
     value: float
     rank: int
@@ -22,6 +30,10 @@ class CryptoEntry(BaseModel):
 
 
 class OutputFormat(Enum):
+    """Output format for the crypto entries.
+
+    It can be either JSON or CSV.
+    """
     JSON = "JSON"
     CSV = "CSV"
 

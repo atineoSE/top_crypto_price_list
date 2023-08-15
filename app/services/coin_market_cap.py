@@ -12,6 +12,7 @@ COIN_MARKET_CAP_API_KEY = os.getenv("COIN_MARKET_CAP_API_KEY")
 
 
 class CoinMarketCap:
+    """API external service from CoinMarketCap"""
     host: str
     headers: dict[str, Any]
 
@@ -23,6 +24,16 @@ class CoinMarketCap:
         }
 
     async def get_coin_prices(self) -> dict[str, float]:
+        """Gets the current price of the top 500 coins by market volume in the last 24 hours.
+
+        In order to increase chances of a match with external data, we record each coin by
+        the symbol name and the full name.
+
+        Returns:
+            dict[str, float]: A dictionary of coin names and their prices in USD.
+            For example: {"BTC": 29434.824505477198, "Bitcoin": 29434.824505477198,  
+            "ETH": 1851.0382543598475, "Ethereum": 1851.0382543598475, ...}
+        """
         url = self.host + "cryptocurrency/listings/latest"
         url_params: dict[str, Any] = {
             "limit": 500,

@@ -12,6 +12,7 @@ CRYPTO_COMPARE_API_KEY = os.getenv("CRYPTO_COMPARE_API_KEY")
 
 
 class CryptoCompare:
+    """API external service for CryptoCompare"""
     host: str
     headers: dict[str, Any]
 
@@ -23,6 +24,12 @@ class CryptoCompare:
         }
 
     async def get_top_crypto_list(self) -> list[tuple[str, str]]:
+        """Gets symbol name and full name of the top 100 crypto currencies sorted by market volume in the last 24 hours.
+
+        Returns:
+            list[tuple[str, str]]: List of tuples of crypto currency symbol name and full name.
+            For example: [("BTC", "Bitcoin"), ("ETH", "Ethereum"), ...]
+        """
         url = self.host + "data/top/totalvolfull"
         url_params: dict[str, Any] = {
             "limit": 100,
