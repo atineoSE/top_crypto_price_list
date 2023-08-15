@@ -68,6 +68,8 @@ class CoinResolver:
             return closest_timestamp
 
         # If it's not found, we don't have it
+        logging.debug(
+            f"CoinResolver: could not find any timestamp for historical data around {reference.isoformat()}")
         raise UnavailableTime()
 
     async def _fetch_top_coins_from_API_services(self) -> list[CryptoEntry]:

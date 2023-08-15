@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from app.models.models import CryptoEntry
 from pymongo.mongo_client import MongoClient
 from pymongo.collection import Collection
+import logging
 
 load_dotenv()
 
@@ -30,18 +31,18 @@ class Database:
         self.collection.insert_many(crypto_entries_for_insertion)
 
     def get_closest_timestamp(self, timestamp: datetime, seconds_range: int) -> datetime | None:
+        max_timestamp = timestamp + timedelta(seconds=seconds_range/2)
+        min_timestamp = timestamp - timedelta(seconds=seconds_range/2)
         try:
-            close_timestamps = self.collection.aggregate([
-                # {"$match":
-                #     {"and":
-                #         [
-                #             {"timestamp": {"$lte": timestamp +
-                #                            timedelta(seconds=seconds_range/2)}},
-                #             {"timestamp": {"$gte": timestamp -
-                #                            timedelta(seconds=seconds_range/2)}}
-                #         ]
-                #      }
-                #  },
+            close_timestamps_cursor = self.collection.aggregate([
+                {"$match":
+                    {"$and":
+                        [
+                            {"timestamp": {"$lte": max_timestamp.isoformat()}},
+                            {"timestamp": {"$gte": min_timestamp.isoformat()}}
+                        ]
+                     }
+                 },
                 {"$group":
                     {
                         "_id": None,
@@ -49,25 +50,27 @@ class Database:
                     }
                  }
             ])
-            alive = close_timestamps.alive
-            value = list(map(lambda t: datetime.fromisoformat(t),
-                         close_timestamps.next()["timestamp"]))
-            return self._closest_timestamp(timestamp, value)
+            close_timestamps = list(map(lambda t: datetime.fromisoformat(t),
+                                        close_timestamps_cursor.next()["timestamp"]))
+            logging.debug(
+                f"Database: found {len(close_timestamps)} between {min_timestamp.isoformat()} and {max_timestamp.isoformat()}")
+            return self._closest_timestamp(timestamp, close_timestamps)
         except StopIteration:
+            logging.debug(
+                f"Database: Couldn't find any timestamps between {min_timestamp.isoformat()} and {max_timestamp.isoformat()}")
             return None
 
     def get_historical_data(self, limit: int, timestamp: datetime) -> list[CryptoEntry]:
         results = self.collection.find(
-            {"timestamp": timestamp}).sort("rank", -1).limit(limit)
-        converted_results = []
-        for result in results:
-            print(result)
-            cryptoEntry = CryptoEntry(**result)
-            converted_results.append(cryptoEntry)
-        # converted_results = list(map(lambda x: CryptoEntry(**x), results))
+            {"timestamp": timestamp.isoformat()}).sort("rank").limit(limit)
+        converted_results = list(map(lambda x: CryptoEntry(**x), results))
+        logging.debug(
+            f"Database: retrieved {len(converted_results)} records of historical data with timestamp {timestamp.isoformat()}")
         return converted_results
 
     def _closest_timestamp(self, reference: datetime, timestamps: list[datetime]) -> datetime | None:
+        logging.debug(
+            f"Database: looking for the closest time to {reference.isoformat()} in {list(map(lambda t: t.isoformat(), timestamps))}")
         if len(timestamps) == 0:
             return None
         closest = timestamps[0]
@@ -77,4 +80,5 @@ class Database:
             if diff < min_diff:
                 closest = elem
                 min_diff = diff
+        logging.debug(f"Database: found closest time: {closest.isoformat()}")
         return closest
