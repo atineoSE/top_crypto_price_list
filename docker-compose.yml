@@ -1,0 +1,24 @@
+# https://docs.docker.com/compose/compose-file/compose-versioning/
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/top_crypto_price_list/app
+    command:
+      - sh
+      - -c
+      - |
+        source /run/secrets/app_secrets
+        export `cut -d= -f1 /run/secrets/app_secrets`
+        uvicorn app.main:app --host 0.0.0.0 --port 8000
+    secrets:
+      - app_secrets
+
+secrets:
+  app_secrets:
+    file: .env
